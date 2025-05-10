@@ -1,0 +1,42 @@
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+app.get('/bfhl', (req, res) => {
+    res.status(200).json({ operation_code: 1 });
+});
+
+app.post('/bfhl', (req, res) => {
+    const { data } = req.body;
+
+    const user_id = "john_doe_17091999";
+    const email = "john@xyz.com";
+    const roll_number = "ABCD123";
+
+    if (!Array.isArray(data)) {
+        return res.status(400).json({ is_success: false });
+    }
+
+    const numbers = data.filter(item => !isNaN(item));
+    const alphabets = data.filter(item => isNaN(item));
+    const highest = alphabets.length
+        ? [alphabets.reduce((a, b) => (a.toUpperCase() > b.toUpperCase() ? a : b))]
+        : [];
+
+    res.json({
+        is_success: true,
+        user_id,
+        email,
+        roll_number,
+        numbers,
+        alphabets,
+        highest_alphabet: highest
+    });
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
