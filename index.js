@@ -23,9 +23,10 @@ app.post('/bfhl', (req, res) => {
     }
 
     const numbers = data.filter(item => !isNaN(item));
-    const alphabets = data.filter(item => isNaN(item));
+    const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
+
     const highest = alphabets.length
-        ? [alphabets.reduce((a, b) => (a.toUpperCase() > b.toUpperCase() ? a : b))]
+        ? [alphabets.reduce((a, b) => (a.toLowerCase() > b.toLowerCase() ? a : b))]
         : [];
 
     res.json({
