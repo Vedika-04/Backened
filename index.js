@@ -6,60 +6,97 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// GET route for /bfhl
+// Your personal information
+const USER_ID = "vedika_joshi_0827CY221066";
+const EMAIL = "vedikajoshi220951@acropolis.in";
+const ROLL_NUMBER = "0827CY221066";
+
+// Root endpoint - works for both local and deployed
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: "Server is running",
+    deployed_frontend: "https://frontend-pi-six-81.vercel.app",
+    deployed_backend: "https://bfhl-backend-bu7d.onrender.com",
+    endpoints: {
+      GET: '/bfhl',
+      POST: '/bfhl'
+    },
+    your_info: {
+      user_id: USER_ID,
+      email: EMAIL,
+      roll_number: ROLL_NUMBER
+    }
+  });
+});
+
+// GET endpoint
 app.get('/bfhl', (req, res) => {
   res.status(200).json({ operation_code: 1 });
 });
 
-// POST route for /bfhl
+// POST endpoint
 app.post('/bfhl', (req, res) => {
   try {
     const { data } = req.body;
-    
-    // Check if data is provided and is an array
-    if (!Array.isArray(data)) {
-      return res.status(400).json({ is_success: false });
+
+    if (!data || !Array.isArray(data)) {
+      return res.status(400).json({
+        is_success: false,
+        error: "Invalid input format. Expected { data: [] }"
+      });
     }
-    
-    // Your user information
-    const user_id = "vedika_joshi_0827CY221066";
-    const email = "vedikajoshi220951@acropolis.in";
-    const roll_number = "0827CY221066";
-    
-    // Separate numbers and alphabets
-    const numbers = data.filter(item => !isNaN(item));
-    const alphabets = data.filter(item => isNaN(item) && item.length === 1);
-    
-    // Find highest alphabet (case insensitive)
+
+    const numbers = [];
+    const alphabets = [];
+
+    data.forEach(item => {
+      const strItem = String(item).trim();
+      if (!isNaN(strItem)) {
+        numbers.push(strItem);
+      } else if (/^[a-zA-Z]$/.test(strItem)) {
+        alphabets.push(strItem.toUpperCase());
+      }
+    });
+
     let highest_alphabet = [];
     if (alphabets.length > 0) {
-      const upperCaseAlphabets = alphabets.map(char => char.toUpperCase());
-      const highestChar = upperCaseAlphabets.reduce((a, b) => a > b ? a : b);
-      highest_alphabet = [alphabets[upperCaseAlphabets.indexOf(highestChar)]];
+      const sorted = [...alphabets].sort((a, b) => 
+        b.localeCompare(a, undefined, { sensitivity: 'base' })
+      );
+      highest_alphabet = [sorted[0]];
     }
-    
-    // Construct response
-    const response = {
+
+    res.json({
       is_success: true,
-      user_id,
-      email,
-      roll_number,
+      user_id: USER_ID,
+      email: EMAIL,
+      roll_number: ROLL_NUMBER,
       numbers,
       alphabets,
       highest_alphabet
-    };
-    
-    res.status(200).json(response);
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ is_success: false, error: 'Internal server error' });
+    res.status(500).json({
+      is_success: false,
+      error: "Internal server error"
+    });
   }
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Handle all other routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Endpoint not found",
+    available_endpoints: {
+      GET: ['/', '/bfhl'],
+      POST: ['/bfhl']
+    }
+  });
 });
 
-module.exports = app;
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
