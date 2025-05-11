@@ -14,9 +14,9 @@ app.get('/bfhl', (req, res) => {
 app.post('/bfhl', (req, res) => {
     const { data } = req.body;
 
-    const user_id = "john_doe_17091999";
-    const email = "john@xyz.com";
-    const roll_number = "ABCD123";
+    const user_id = "vedika_joshi_0827CY221066";
+    const email = "vedikajoshi220951@acropolis.in";
+    const roll_number = "0827CY221066";
 
     if (!Array.isArray(data)) {
         return res.status(400).json({ is_success: false });
