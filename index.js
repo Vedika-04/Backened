@@ -1,95 +1,63 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Enhanced CORS configuration
-app.use(cors({
-  origin: ['https://frontend-pi-six-81.vercel.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// Enable pre-flight for all routes
-app.options('*', cors());
-
-app.use(bodyParser.json());
-
-// GET endpoint
+// GET route for /bfhl
 app.get('/bfhl', (req, res) => {
-  try {
-    return res.status(200).json({
-      operation_code: 1
-    });
-  } catch (error) {
-    console.error('Error in GET /bfhl:', error);
-    return res.status(500).json({
-      is_success: false,
-      error: 'Internal server error'
-    });
-  }
+  res.status(200).json({ operation_code: 1 });
 });
 
-// POST endpoint
+// POST route for /bfhl
 app.post('/bfhl', (req, res) => {
   try {
     const { data } = req.body;
     
-    // Validate input
+    // Check if data is provided and is an array
     if (!Array.isArray(data)) {
-      return res.status(400).json({
-        is_success: false,
-        error: 'Invalid input. Data must be an array.'
-      });
+      return res.status(400).json({ is_success: false });
     }
     
     // Your user information
     const user_id = "vedika_joshi_0827CY221066";
     const email = "vedikajoshi220951@acropolis.in";
     const roll_number = "0827CY221066";
-
-    // Process data
-    const numbers = data.filter(item => !isNaN(item) && item.trim() !== '');
-    const alphabets = data.filter(item => 
-      typeof item === 'string' && 
-      item.length === 1 && 
-      isNaN(item) && 
-      /^[a-zA-Z]$/.test(item)
-    );
-
+    
+    // Separate numbers and alphabets
+    const numbers = data.filter(item => !isNaN(item));
+    const alphabets = data.filter(item => isNaN(item) && item.length === 1);
+    
     // Find highest alphabet (case insensitive)
     let highest_alphabet = [];
     if (alphabets.length > 0) {
-      const sortedAlphabets = [...alphabets].sort((a, b) => 
-        a.toLowerCase().localeCompare(b.toLowerCase())
-      );
-      highest_alphabet = [sortedAlphabets[sortedAlphabets.length - 1]];
+      const upperCaseAlphabets = alphabets.map(char => char.toUpperCase());
+      const highestChar = upperCaseAlphabets.reduce((a, b) => a > b ? a : b);
+      highest_alphabet = [alphabets[upperCaseAlphabets.indexOf(highestChar)]];
     }
-
-    // Create response with is_success: true
+    
+    // Construct response
     const response = {
       is_success: true,
-      user_id: user_id,
-      email: email,
-      roll_number: roll_number,
-      numbers: numbers,
-      alphabets: alphabets,
-      highest_alphabet: highest_alphabet
+      user_id,
+      email,
+      roll_number,
+      numbers,
+      alphabets,
+      highest_alphabet
     };
-
-    return res.status(200).json(response);
+    
+    res.status(200).json(response);
   } catch (error) {
-    console.error('Error in POST /bfhl:', error);
-    return res.status(500).json({
-      is_success: false,
-      error: 'Internal server error'
-    });
+    console.error(error);
+    res.status(500).json({ is_success: false, error: 'Internal server error' });
   }
 });
 
-// Start server
+// Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
